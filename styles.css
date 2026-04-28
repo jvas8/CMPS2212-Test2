@@ -247,9 +247,16 @@ body {
 }
 
 .card-front img {
-  width: 70%;
-  height: 70%;
+  width: 80%;
+  height: 80%;
   object-fit: contain;
+  border-radius: 8px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  transition: transform 0.2s ease;
+}
+
+.card:hover .card-front img {
+  transform: scale(1.05);
 }
 
 .card-front span {

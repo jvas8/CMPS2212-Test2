@@ -109,8 +109,8 @@ export function createUI(eventBus, gameService, rootEl) {
     front.className = 'card-face card-front';
 
     const img = document.createElement('img');
-    img.src = `assets/${card.symbol}`;
-    img.alt = card.symbol;
+    img.src = card.symbol.startsWith('http') ? card.symbol : `assets/${card.symbol}`;
+    img.alt = card.symbol.split('/').pop().replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
 
     front.appendChild(img);
     inner.appendChild(back);
