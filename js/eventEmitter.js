@@ -38,7 +38,7 @@
 export function createEventEmitter() {
   // TODO (1): create the private listeners store here.
   //           It should be an object mapping event name → array of listeners.
-
+  const listeners = {};
 
   function on(eventName, listener) {
     // TODO (2):
@@ -46,7 +46,13 @@ export function createEventEmitter() {
     //   - Push `listener` into that array.
     //   - Validate that `listener` is a function; otherwise throw a
     //     TypeError with a clear message (fail loud, fail early).
-
+    if (typeof listener !== 'function') {
+      throw new TypeError(`Listener for "${eventName}" must be a function.`);
+    }
+    if (!listeners[eventName]) {
+      listeners[eventName] = [];
+    }
+    listeners[eventName].push(listener);
   }
 
   function off(eventName, listener) {
@@ -55,7 +61,8 @@ export function createEventEmitter() {
     //   - Otherwise remove ONLY the matching listener reference.
     //   - Do not mutate the array in place in a way that breaks a
     //     concurrent `emit` iteration — filter into a new array instead.
-
+    if (!listeners[eventName]) return;
+    listeners[eventName] = listeners[eventName].filter(l => l !== listener);
   }
 
   function emit(eventName, payload) {
@@ -64,7 +71,14 @@ export function createEventEmitter() {
     //   - Otherwise call every listener with `payload`.
     //   - Wrap each call in a try/catch so one bad listener does not
     //     break the others. Log errors with console.error.
-
+    if (!listeners[eventName]) return;
+    listeners[eventName].forEach(listener => {
+      try {
+        listener(payload);
+      } catch (err) {
+        console.error(`Error in listener for "${eventName}":`, err);
+      }
+    });
   }
 
   // Public interface — factory return value. Notice how the internal

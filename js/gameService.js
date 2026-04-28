@@ -73,15 +73,22 @@
 //
 // ============================================================================
 
-// The 18 Belizean-themed symbols. Each one will appear on exactly two cards.
+// The 10 Sanrio character symbols. Each one will appear on exactly two cards.
 const SYMBOLS = [
-  '🦜', '🐆', '🌊', '🏝️', '🐢', '🥥',
-  '🌴', '🥭', '🦈', '🐬', '🦩', '🐠',
-  '☀️',  '⛰️', '🌺', '🦎', '🦀', '🛶',
+  'badtz-maru.png',
+  'chococat.jpg',
+  'cinnamoroll.png',
+  'gudetama.png',
+  'hello-kitty.jpg',
+  'keroppi.jpg',
+  'kuromi.jpg',
+  'little-twin-stars.jpg',
+  'my-melody.png',
+  'pompompurin.png',
 ];
 
-const TOTAL_PAIRS = SYMBOLS.length;          // 18
-const TOTAL_CARDS = TOTAL_PAIRS * 2;         // 36
+const TOTAL_PAIRS = SYMBOLS.length;          // 10
+const TOTAL_CARDS = TOTAL_PAIRS * 2;         // 20
 const FLIP_BACK_DELAY_MS = 900;              // time to view a failed match
 const TIMER_INTERVAL_MS = 1000;
 
@@ -130,7 +137,12 @@ export function createGameService(eventBus) {
     //   - Iterate from the end down to index 1.
     //   - Swap each element with a random earlier element (inclusive).
     //   - Return the shuffled clone.
-
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
   /**
@@ -144,7 +156,9 @@ export function createGameService(eventBus) {
     //   - Map each entry to a Card object: { id, symbol, isFlipped, isMatched }.
     //   - `id` is the card's index in the final shuffled array.
     //   - Return the resulting array.
-
+    const doubled = SYMBOLS.flatMap(s => [s, s]);
+    const shuffled = shuffle(doubled);
+    return shuffled.map((symbol, id) => ({ id, symbol, isFlipped: false, isMatched: false }));
   }
 
   /**
@@ -153,7 +167,7 @@ export function createGameService(eventBus) {
    */
   function getCardById(id) {
     // TODO (3): find and return the card with matching id, or undefined.
-
+    return state.cards.find(c => c.id === id);
   }
 
   // -------------------------------------------------------------------------
@@ -167,13 +181,20 @@ export function createGameService(eventBus) {
     //       * increments state.elapsedSeconds
     //       * emits 'game:timerTick' with { elapsedSeconds }
     //   - Store the interval id in state.timerId.
-
+    if (state.timerId !== null) return;
+    state.timerId = setInterval(() => {
+      state.elapsedSeconds++;
+      eventBus.emit('game:timerTick', { elapsedSeconds: state.elapsedSeconds });
+    }, TIMER_INTERVAL_MS);
   }
 
   function stopTimer() {
     // TODO (5):
     //   - If state.timerId is not null, clearInterval and set timerId = null.
-
+    if (state.timerId !== null) {
+      clearInterval(state.timerId);
+      state.timerId = null;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -195,7 +216,12 @@ export function createGameService(eventBus) {
     //
     // IMPORTANT: emit 'game:started' BEFORE starting the timer, so the UI
     // has the board on-screen before the first tick arrives.
-
+    stopTimer();
+    state = createInitialState();
+    state.cards = buildDeck();
+    state.status = 'playing';
+    eventBus.emit('game:started', { cards: state.cards, totalPairs: TOTAL_PAIRS });
+    startTimer();
   }
 
   /**
@@ -251,6 +277,62 @@ export function createGameService(eventBus) {
     //             'game:matchFailed' directly. Do not emit anything
     //             new from inside this timeout.
 
+    // STEP A — validate
+    if (state.status !== 'playing') return;
+    if (state.isLocked) return;
+    const card = getCardById(cardId);
+    if (!card) return;
+    if (card.isFlipped || card.isMatched) return;
+    if (state.secondPickId !== null) return;
+
+    // STEP B — flip
+    card.isFlipped = true;
+    eventBus.emit('game:cardFlipped', { cardId, symbol: card.symbol });
+
+    // STEP C — decide which slot
+    if (state.firstPickId === null) {
+      state.firstPickId = cardId;
+      return;
+    }
+
+    state.secondPickId = cardId;
+    state.moves++;
+    eventBus.emit('game:moveCountChanged', { moves: state.moves });
+
+    const first  = getCardById(state.firstPickId);
+    const second = getCardById(state.secondPickId);
+
+    if (first.symbol === second.symbol) {
+      first.isMatched  = true;
+      second.isMatched = true;
+      state.matchedCount += 2;
+      const firstId  = state.firstPickId;
+      const secondId = state.secondPickId;
+      state.firstPickId  = null;
+      state.secondPickId = null;
+      eventBus.emit('game:matchFound', { firstId, secondId, matchedCount: state.matchedCount });
+
+      if (state.matchedCount === TOTAL_CARDS) {
+        state.status = 'won';
+        stopTimer();
+        eventBus.emit('game:won', { moves: state.moves, elapsedSeconds: state.elapsedSeconds });
+      }
+    } else {
+      state.isLocked = true;
+      const firstId  = state.firstPickId;
+      const secondId = state.secondPickId;
+      eventBus.emit('game:matchFailed', { firstId, secondId });
+
+      setTimeout(() => {
+        const f = getCardById(firstId);
+        const s = getCardById(secondId);
+        if (f) f.isFlipped = false;
+        if (s) s.isFlipped = false;
+        state.firstPickId  = null;
+        state.secondPickId = null;
+        state.isLocked     = false;
+      }, FLIP_BACK_DELAY_MS);
+    }
   }
 
   /**
@@ -260,7 +342,7 @@ export function createGameService(eventBus) {
    */
   function restart() {
     // TODO (8): call start(). That's it.
-
+    start();
   }
 
   /**

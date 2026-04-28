@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Belize Memory Match — CMPS2212</title>
+  <title>Sanrio Memory Match — CMPS2242</title>
   <link rel="stylesheet" href="styles.css" />
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
   <header class="game-header">
-    <h1 class="game-title">Belize <span class="accent">Memory</span> Match</h1>
-    <p class="game-subtitle">Find all 18 pairs hidden across the reef.</p>
+    <h1 class="game-title">Sanrio <span class="accent">Memory</span> Match</h1>
+    <p class="game-subtitle">Find all 10 pairs of your favourite Sanrio characters.</p>
   </header>
 
   <main class="game-main">
@@ -31,7 +31,7 @@
       </div>
       <div class="hud-stat">
         <span class="hud-label">Matched</span>
-        <span class="hud-value" data-role="matched">0 / 18</span>
+        <span class="hud-value" data-role="matched">0 / 10</span>
       </div>
       <button type="button" class="btn-restart" data-role="restart">
         New Game
@@ -39,7 +39,7 @@
     </section>
 
     <!--
-      Board container. The UI layer populates this with 36 card nodes
+      Board container. The UI layer populates this with 20 card nodes
       when the service emits 'game:started'.
     -->
     <section
@@ -51,7 +51,7 @@
     <!-- Win overlay — UI layer toggles the .is-visible class on 'game:won' -->
     <div class="win-overlay" data-role="win-overlay" aria-hidden="true">
       <div class="win-card">
-        <h2>Ajay! You matched every pair.</h2>
+        <h2>You matched every pair!</h2>
         <p class="win-stats">
           <span data-role="win-moves">0</span> moves
           &middot;
@@ -65,7 +65,7 @@
   </main>
 
   <footer class="game-footer">
-    <small>CMPS2212 &middot; University of Belize &middot; Observer Pattern (Stew Cashew)</small>
-  </footer> 
+    <small>CMPS2242 &middot; University of Belize &middot; Observer Pattern</small>
+  </footer>
 </body>
 </html>

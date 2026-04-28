@@ -246,6 +246,12 @@ body {
   transform: rotateY(180deg);
 }
 
+.card-front img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+}
+
 .card-front span {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
   line-height: 1;
@@ -322,5 +328,5 @@ body {
   .hud { grid-template-columns: repeat(3, 1fr); }
   .btn-restart { grid-column: 1 / -1; }
   .board { gap: 0.4rem; padding: 0.6rem; }
-  .card-front span { font-size: 1.4rem; }
+  .card-front img { width: 70%; height: 70%; object-fit: contain; }
 }
